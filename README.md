@@ -1,3 +1,5 @@
+<a href="README_zh_CN.md">简体中文</a>
+
 # Bombmanual
 
 A automatic program for game "Keep Talking and Nobody Explodes".
