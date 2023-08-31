@@ -4,7 +4,6 @@ use crate::modes::{button::button_mode, complex_wires::complex_wires_mode, wires
 use bomb::utils::{read_string, read_u8};
 
 fn main() {
-    clear();
     loop {
         match one_game() {
             Ok(true) => break,
