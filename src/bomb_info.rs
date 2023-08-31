@@ -7,6 +7,7 @@ pub struct BombInfo {
     /// Batteries now doesn't need to consider type.
     // batteries: Vec<Battery>,
     batteries_count: u32,
+    has_parallel_port: bool,
 }
 
 struct Serial {
@@ -53,18 +54,19 @@ impl BombInfo {
     //     })
     // }
 
-    fn new(serial: &str, batteries_count: &str) -> anyhow::Result<Self> {
+    fn new(serial: &str, batteries_count: &str, has_parallel_port: bool) -> anyhow::Result<Self> {
         let batteries_count = batteries_count
             .parse::<u32>()
             .map_err(|_| anyhow::anyhow!("Batteries count must be a number."))?;
         Ok(Self {
             serial: Serial::new(serial)?,
             batteries_count,
+            has_parallel_port,
         })
     }
 
-    pub fn init(s: &str, batteries_count: &str) -> anyhow::Result<()> {
-        let serial = Self::new(s, batteries_count)?;
+    pub fn init(s: &str, batteries_count: &str, has_parallel_port: bool) -> anyhow::Result<()> {
+        let serial = Self::new(s, batteries_count, has_parallel_port)?;
         BOMBINFO
             .set(serial)
             .map_err(|_| anyhow::anyhow!("Serial has been initialized."))?;
@@ -89,6 +91,10 @@ impl BombInfo {
         let last_num = Self::get().serial.last_num;
         last_num % 2 == 0
     }
+
+    pub fn has_parallel_port() -> bool {
+        Self::get().has_parallel_port
+    }
 }
 
 #[cfg(test)]
@@ -97,13 +103,13 @@ mod tests {
 
     #[test]
     fn last_odd() {
-        BombInfo::init("ABCDEF7", "0").unwrap();
+        BombInfo::init("ABCDEF7", "0", false).unwrap();
         assert!(!BombInfo::is_serial_last_even());
     }
 
     #[test]
     fn last_even() {
-        BombInfo::init("ABCDEF0", "0").unwrap();
+        BombInfo::init("ABCDEF0", "0", false).unwrap();
         assert!(BombInfo::is_serial_last_even());
     }
 }

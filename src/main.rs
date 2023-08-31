@@ -1,8 +1,8 @@
+mod modes;
+
+use crate::modes::{complex_wires::complex_wires_mode, wires::wires_mode};
 use anyhow::Context;
-use bomb::{
-    bomb_info::BombInfo,
-    wires::{Color, Wires},
-};
+use bomb::bomb_info::BombInfo;
 
 fn main() {
     clear();
@@ -10,7 +10,9 @@ fn main() {
     let serial = read_string().expect("Invalid input.");
     println!("Please input your batteries count:");
     let batteries_count = read_string().expect("Invalid input.");
-    BombInfo::init(&serial, &batteries_count).unwrap();
+    println!("Please input y/n has parallel port:");
+    let has_parallel_port = read_bool().expect("Invalid input.");
+    BombInfo::init(&serial, &batteries_count, has_parallel_port).unwrap();
     clear();
     loop {
         match one_game() {
@@ -34,6 +36,7 @@ fn one_game() -> anyhow::Result<bool> {
     print!(
         r#"choose mode:
 1. Wires
+2. Complex Wires
 0. Exit
 "#,
     );
@@ -43,12 +46,11 @@ fn one_game() -> anyhow::Result<bool> {
         1 => {
             clear();
             println!("Play wires mode");
-            println!("Enter wire colors from above to bottom using format like 'rwbdy' for red, white, blue, dark, yellow\n");
             loop {
                 match wires_mode() {
                     Ok(_) => {
-                        println!("type 0 for continue, other for menu.");
-                        if !read_string()?.eq("0") {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
                             break;
                         }
                         clear();
@@ -56,8 +58,33 @@ fn one_game() -> anyhow::Result<bool> {
                     }
                     Err(e) => {
                         println!("Error: {e}");
-                        println!("type 0 for continue, other for menu.");
-                        if !read_string()?.eq("0") {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                }
+            }
+        }
+        2 => {
+            clear();
+            println!("Play complex wires mode");
+            loop {
+                match complex_wires_mode() {
+                    Ok(_) => {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("Error: {e}");
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
                             break;
                         }
                         clear();
@@ -74,26 +101,6 @@ fn one_game() -> anyhow::Result<bool> {
     Ok(false)
 }
 
-fn wires_mode() -> anyhow::Result<()> {
-    println!("Wires mode, Enter your string:");
-    let s = read_string()?;
-    let colors = s
-        .chars()
-        .map(|c| match c {
-            'r' => Ok(Color::Red),
-            'w' => Ok(Color::White),
-            'b' => Ok(Color::Blue),
-            'd' => Ok(Color::Dark),
-            'y' => Ok(Color::Yellow),
-            _ => anyhow::bail!("{s} has invalid color:{c}"),
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    let wires = Wires::new(colors);
-    let nth = wires.get_cut_num();
-    println!("Cut-off order {}\n", nth + 1);
-    Ok(())
-}
-
 fn read_u8() -> anyhow::Result<u8> {
     let s = read_string()?;
     let n: u8 = s
@@ -106,6 +113,16 @@ fn read_string() -> anyhow::Result<String> {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
+}
+
+fn read_bool() -> anyhow::Result<bool> {
+    let s = read_string()?;
+    let b = match s.as_str() {
+        "n" => false,
+        "y" => true,
+        _ => anyhow::bail!("Invalid input, must be y/n.: {s}"),
+    };
+    Ok(b)
 }
 
 fn clear() {

@@ -11,10 +11,10 @@ Assistance for modules that are easy to communicate but take a long time to comp
 - [ ] Read static bomb information
   - [x] battery
   - [x] serial number
-  - [ ] ports
+  - [x] ports
   - [ ] indicators
 - [x] Wire module
 - [ ] Button module
-- [ ] Complex wire module
+- [x] Complex wire module
 - [ ] Morse code module
 - [ ] Password module
