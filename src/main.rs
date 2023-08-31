@@ -1,18 +1,9 @@
 mod modes;
 
-use crate::modes::{complex_wires::complex_wires_mode, wires::wires_mode};
-use anyhow::Context;
-use bomb::bomb_info::BombInfo;
+use crate::modes::{button::button_mode, complex_wires::complex_wires_mode, wires::wires_mode};
+use bomb::utils::{read_string, read_u8};
 
 fn main() {
-    clear();
-    println!("Please input your serial number:");
-    let serial = read_string().expect("Invalid input.");
-    println!("Please input your batteries count:");
-    let batteries_count = read_string().expect("Invalid input.");
-    println!("Please input y/n has parallel port:");
-    let has_parallel_port = read_bool().expect("Invalid input.");
-    BombInfo::init(&serial, &batteries_count, has_parallel_port).unwrap();
     clear();
     loop {
         match one_game() {
@@ -37,6 +28,7 @@ fn one_game() -> anyhow::Result<bool> {
         r#"choose mode:
 1. Wires
 2. Complex Wires
+3. Button
 0. Exit
 "#,
     );
@@ -93,36 +85,37 @@ fn one_game() -> anyhow::Result<bool> {
                 }
             }
         }
+        3 => {
+            clear();
+            println!("Play button mode");
+            loop {
+                match button_mode() {
+                    Ok(_) => {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("Error: {e}");
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                }
+            }
+        }
         _ => {
             println!("Invalid game mode");
         }
     };
 
     Ok(false)
-}
-
-fn read_u8() -> anyhow::Result<u8> {
-    let s = read_string()?;
-    let n: u8 = s
-        .parse()
-        .context(format!("Invalid input, must be a number.: {s}"))?;
-    Ok(n)
-}
-
-fn read_string() -> anyhow::Result<String> {
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input)?;
-    Ok(input.trim().to_string())
-}
-
-fn read_bool() -> anyhow::Result<bool> {
-    let s = read_string()?;
-    let b = match s.as_str() {
-        "n" => false,
-        "y" => true,
-        _ => anyhow::bail!("Invalid input, must be y/n.: {s}"),
-    };
-    Ok(b)
 }
 
 fn clear() {

@@ -1,16 +1,14 @@
 use std::sync::OnceLock;
 
-pub static BOMBINFO: OnceLock<BombInfo> = OnceLock::new();
+use crate::utils::read_string;
 
-pub struct BombInfo {
-    serial: Serial,
-    /// Batteries now doesn't need to consider type.
-    // batteries: Vec<Battery>,
-    batteries_count: u32,
-    has_parallel_port: bool,
-}
+pub static SERIAL: OnceLock<Serial> = OnceLock::new();
+pub static BATTERIES_COUNT: OnceLock<Batteries> = OnceLock::new();
+pub static HAS_PARALLEL_PORT: OnceLock<Ports> = OnceLock::new();
+pub static INDICATOR: OnceLock<Indicator> = OnceLock::new();
 
-struct Serial {
+#[derive(Debug)]
+pub struct Serial {
     // _inner: &'static str,
     contains_vowel: bool,
     last_num: u32,
@@ -29,87 +27,130 @@ impl Serial {
             last_num: last_char.to_digit(10).unwrap(),
         })
     }
-}
-
-// #[derive(Debug)]
-// enum Battery {
-//     AA,
-//     D,
-// }
-
-impl BombInfo {
-    // /// Batteries now doesn't need to consider type.
-    // fn new(serial: &str, batteries: &str) -> anyhow::Result<Self> {
-    //     let batteries = batteries
-    //         .split(',')
-    //         .map(|b| match b {
-    //             "AA" | "aa" => Ok(Battery::AA),
-    //             "D" | "d" => Ok(Battery::D),
-    //             _ => anyhow::bail!("Invalid battery type: {b}."),
-    //         })
-    //         .collect::<Result<Vec<_>, _>>()?;
-    //     Ok(Self {
-    //         serial: serial.to_string(),
-    //         batteries,
-    //     })
-    // }
-
-    fn new(serial: &str, batteries_count: &str, has_parallel_port: bool) -> anyhow::Result<Self> {
-        let batteries_count = batteries_count
-            .parse::<u32>()
-            .map_err(|_| anyhow::anyhow!("Batteries count must be a number."))?;
-        Ok(Self {
-            serial: Serial::new(serial)?,
-            batteries_count,
-            has_parallel_port,
-        })
-    }
-
-    pub fn init(s: &str, batteries_count: &str, has_parallel_port: bool) -> anyhow::Result<()> {
-        let serial = Self::new(s, batteries_count, has_parallel_port)?;
-        BOMBINFO
-            .set(serial)
-            .map_err(|_| anyhow::anyhow!("Serial has been initialized."))?;
-        Ok(())
-    }
-
-    fn get() -> &'static BombInfo {
-        BOMBINFO.get().unwrap()
-        // .ok_or(anyhow::anyhow!("Serial not initialized."))
-    }
-
-    pub fn batteries_count() -> u32 {
-        Self::get().batteries_count
-    }
-
-    pub fn is_serial_contains_vowel() -> bool {
-        Self::get().serial.contains_vowel
+    pub fn is_contains_vowel(&self) -> bool {
+        self.contains_vowel
     }
 
     /// True for even, false for odd.
-    pub fn is_serial_last_even() -> bool {
-        let last_num = Self::get().serial.last_num;
+    pub fn is_last_even(&self) -> bool {
+        let last_num = self.last_num;
         last_num % 2 == 0
     }
 
-    pub fn has_parallel_port() -> bool {
-        Self::get().has_parallel_port
+    pub fn get_or_init() -> anyhow::Result<&'static Self> {
+        Ok(match SERIAL.get() {
+            Some(serial) => serial,
+            None => {
+                println!("Please input your serial number:");
+                let s = read_string()?;
+                let serial = Self::new(&s)?;
+                SERIAL.set(serial).unwrap();
+                SERIAL.get().unwrap()
+            }
+        })
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::bomb_info::BombInfo;
+#[derive(Debug)]
+pub struct Batteries {
+    count: u32,
+}
 
-    #[test]
-    fn last_odd() {
-        BombInfo::init("ABCDEF7", "0", false).unwrap();
-        assert!(!BombInfo::is_serial_last_even());
+impl Batteries {
+    fn new(s: &str) -> anyhow::Result<Self> {
+        let count = s
+            .parse::<u32>()
+            .map_err(|_| anyhow::anyhow!("Batteries count must be a number."))?;
+        Ok(Self { count })
     }
 
-    #[test]
-    fn last_even() {
-        BombInfo::init("ABCDEF0", "0", false).unwrap();
-        assert!(BombInfo::is_serial_last_even());
+    pub fn get_count(&self) -> u32 {
+        self.count
+    }
+
+    pub fn get_or_init() -> anyhow::Result<&'static Self> {
+        Ok(match BATTERIES_COUNT.get() {
+            Some(batteries) => batteries,
+            None => {
+                println!("Please input your batteries count:");
+                let s = read_string()?;
+                let batteries = Self::new(&s)?;
+                BATTERIES_COUNT.set(batteries).unwrap();
+                BATTERIES_COUNT.get().unwrap()
+            }
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct Ports {
+    has_parallel: bool,
+}
+
+impl Ports {
+    pub fn new(s: &str) -> anyhow::Result<Self> {
+        let has_parallel = match s {
+            "y" => true,
+            "n" => false,
+            _ => anyhow::bail!("Invalid input, must be y/n.: {s}"),
+        };
+        Ok(Self { has_parallel })
+    }
+
+    pub fn has_parallel(&self) -> bool {
+        self.has_parallel
+    }
+
+    pub fn get_or_init() -> anyhow::Result<&'static Self> {
+        Ok(match HAS_PARALLEL_PORT.get() {
+            Some(ports) => ports,
+            None => {
+                println!("Please input y/n has parallel port:");
+                let s = read_string()?;
+                let ports = Self::new(&s)?;
+                HAS_PARALLEL_PORT.set(ports).unwrap();
+                HAS_PARALLEL_PORT.get().unwrap()
+            }
+        })
+    }
+}
+
+#[derive(Default, Debug)]
+pub enum Indicator {
+    #[default]
+    Others,
+    Car,
+    Frk,
+}
+
+impl Indicator {
+    pub fn new(s: &str) -> anyhow::Result<Self> {
+        let indicator = match s {
+            "car" | "CAR" => Indicator::Car,
+            "frk" | "FRK" => Indicator::Frk,
+            _ => anyhow::bail!("Invalid indicator type: {s}. Must be car|CAR/frk|FRK."),
+        };
+        Ok(indicator)
+    }
+
+    pub fn has_car(&self) -> bool {
+        matches!(self, Indicator::Car)
+    }
+
+    pub fn has_frk(&self) -> bool {
+        matches!(self, Indicator::Frk)
+    }
+
+    pub fn get_or_init() -> anyhow::Result<&'static Self> {
+        Ok(match INDICATOR.get() {
+            Some(indicator) => indicator,
+            None => {
+                println!("Please input your indicator:");
+                let s = read_string()?;
+                let indicator = Self::new(&s)?;
+                INDICATOR.set(indicator).unwrap();
+                INDICATOR.get().unwrap()
+            }
+        })
     }
 }

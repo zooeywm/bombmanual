@@ -8,13 +8,13 @@ Assistance for modules that are easy to communicate but take a long time to comp
 
 # Features
 
-- [ ] Read static bomb information
+- [x] Read static bomb information
   - [x] battery
   - [x] serial number
   - [x] ports
-  - [ ] indicators
+  - [x] indicators
 - [x] Wire module
-- [ ] Button module
+- [x] Button module
 - [x] Complex wire module
 - [ ] Morse code module
 - [ ] Password module

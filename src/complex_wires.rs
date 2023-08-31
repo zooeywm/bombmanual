@@ -1,4 +1,4 @@
-use crate::bomb_info::BombInfo;
+use crate::bomb_info::{Batteries, Ports, Serial};
 
 enum Tactic {
     C,
@@ -9,13 +9,34 @@ enum Tactic {
 }
 
 pub struct ComplexWires {
-    pub has_blue: bool,
-    pub has_red: bool,
-    pub had_star: bool,
-    pub has_led: bool,
+    has_blue: bool,
+    has_red: bool,
+    had_star: bool,
+    has_led: bool,
 }
 
 impl ComplexWires {
+    pub fn new(s: &str) -> anyhow::Result<Self> {
+        if s.chars().count() != 4 {
+            anyhow::bail!("Invalid input, must be 4 characters of y/n.")
+        };
+        let bools = s
+            .chars()
+            .map(|el| match el {
+                'y' => Ok(true),
+                'n' => Ok(false),
+                _ => anyhow::bail!("Invalid input, must be 4 characters of y/n."),
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self {
+            has_blue: bools[0],
+            has_red: bools[1],
+            had_star: bools[2],
+            has_led: bools[3],
+        })
+    }
+
     fn get_tactic(&self) -> Tactic {
         use Tactic::*;
 
@@ -52,15 +73,15 @@ impl ComplexWires {
         }
     }
 
-    pub fn is_cut(&self) -> bool {
+    pub fn is_cut(&self) -> anyhow::Result<bool> {
         use Tactic::*;
         let tactic = self.get_tactic();
-        match tactic {
+        Ok(match tactic {
             C => false,
             D => true,
-            S => BombInfo::is_serial_last_even(),
-            P => BombInfo::has_parallel_port(),
-            B => BombInfo::batteries_count() >= 2,
-        }
+            S => Serial::get_or_init()?.is_last_even(),
+            P => Ports::get_or_init()?.has_parallel(),
+            B => Batteries::get_or_init()?.get_count() >= 2,
+        })
     }
 }

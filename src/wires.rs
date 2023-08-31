@@ -1,4 +1,4 @@
-use crate::bomb_info::BombInfo;
+use crate::bomb_info::Serial;
 
 /// Line mode
 pub struct Wires {
@@ -23,17 +23,32 @@ enum Command {
 }
 
 impl Wires {
-    pub fn new(inner: Vec<Color>) -> Self {
-        Self { inner }
+    pub fn new(s: &str) -> anyhow::Result<Self> {
+        use Color::*;
+        let colors = s
+            .chars()
+            .map(|c| match c {
+                'r' => Ok(Red),
+                'w' => Ok(White),
+                'b' => Ok(Blue),
+                'd' => Ok(Dark),
+                'y' => Ok(Yellow),
+                _ => anyhow::bail!("{s} has invalid color:{c}"),
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        if colors.len() > 6 || colors.len() < 3 {
+            anyhow::bail!("Invalid length")
+        }
+        Ok(Self { inner: colors })
     }
 
     /// Get which wire should be cut.
-    pub fn get_cut_num(&self) -> usize {
+    pub fn get_cut_num(&self) -> anyhow::Result<usize> {
         use Color::*;
         use Command::*;
         let wires = &self.inner;
         let len = wires.len();
-        match len {
+        Ok(match len {
             3 => {
                 // If there is no red wire, then cut the second wire.
                 if self.condition(Red, No) {
@@ -54,7 +69,7 @@ impl Wires {
             }
             4 => {
                 // If there is more than one red wire and the last digit of the serial number is odd, cut the last red wire
-                if !self.condition(Red, MoreThanOne) && !BombInfo::is_serial_last_even() {
+                if !self.condition(Red, MoreThanOne) && !Serial::get_or_init()?.is_last_even() {
                     self.last_index(Red)
                 }
                 //Otherwise, when there are no red wires and the last wire is yellow, cut the first wire.
@@ -75,7 +90,7 @@ impl Wires {
             }
             5 => {
                 // If the last wire is black and the last digit of the serial number is odd, cut the fourth wire
-                if self.condition(Dark, Last) && !BombInfo::is_serial_last_even() {
+                if self.condition(Dark, Last) && !Serial::get_or_init()?.is_last_even() {
                     3
                 }
                 // Otherwise, when there is only one red wire and more than one yellow wire, cut the first wire.
@@ -93,7 +108,7 @@ impl Wires {
             }
             6 => {
                 // If there is no yellow wire and the serial number ends in an odd number, cut the third wire.
-                if self.condition(Yellow, No) && !BombInfo::is_serial_last_even() {
+                if self.condition(Yellow, No) && !Serial::get_or_init()?.is_last_even() {
                     2
                 }
                 // Otherwise, when there is only one yellow wire and more than one white wire, cut the fourth wire.
@@ -109,8 +124,8 @@ impl Wires {
                     3
                 }
             }
-            _ => panic!("Invalid length"),
-        }
+            _ => unreachable!(),
+        })
     }
 
     fn condition(&self, color: Color, command: Command) -> bool {
