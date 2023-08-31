@@ -2,7 +2,7 @@
 
 # Bombmanual
 
-A automatic program for game "Keep Talking and Nobody Explodes".
+A support program for game "Keep Talking and Nobody Explodes".
 
 Assistance for modules that are easy to communicate but take a long time to compute.
 

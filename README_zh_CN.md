@@ -2,9 +2,9 @@
 
 # 拆弹手册
 
-游戏 "Keep Talking and Nobody Explodes" 的自动程序。
+游戏 "Keep Talking and Nobody Explodes" 的辅助程序。
 
-为易于通信但计算时间较长的模块提供帮助。
+为易于沟通但计算时间较长的模块提供帮助。
 
 # Features
 
