@@ -77,8 +77,8 @@ impl ComplexWires {
         use Tactic::*;
         let tactic = self.get_tactic();
         Ok(match tactic {
-            C => false,
-            D => true,
+            C => true,
+            D => false,
             S => Serial::get_or_init()?.is_last_even(),
             P => Ports::get_or_init()?.has_parallel(),
             B => Batteries::get_or_init()?.get_count() >= 2,

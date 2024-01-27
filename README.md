@@ -16,5 +16,3 @@ Assistance for modules that are easy to communicate but take a long time to comp
 - [x] Wire module
 - [x] Button module
 - [x] Complex wire module
-- [ ] Morse code module
-- [ ] Password module

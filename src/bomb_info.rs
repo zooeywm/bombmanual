@@ -124,13 +124,12 @@ pub enum Indicator {
 }
 
 impl Indicator {
-    pub fn new(s: &str) -> anyhow::Result<Self> {
-        let indicator = match s {
-            "car" | "CAR" => Indicator::Car,
-            "frk" | "FRK" => Indicator::Frk,
-            _ => anyhow::bail!("Invalid indicator type: {s}. Must be car|CAR/frk|FRK."),
-        };
-        Ok(indicator)
+    pub fn new(s: &str) -> Self {
+        match s.to_uppercase().as_str() {
+            "CAR" => Indicator::Car,
+            "FRK" => Indicator::Frk,
+            _ => Indicator::Others,
+        }
     }
 
     pub fn has_car(&self) -> bool {
@@ -147,7 +146,7 @@ impl Indicator {
             None => {
                 println!("Please input your indicator:");
                 let s = read_string()?;
-                let indicator = Self::new(&s)?;
+                let indicator = Self::new(&s);
                 INDICATOR.set(indicator).unwrap();
                 INDICATOR.get().unwrap()
             }
