@@ -1,5 +1,12 @@
 pub mod bomb_info;
-pub mod button;
-pub mod complex_wires;
 pub mod utils;
-pub mod wires;
+
+mod button;
+mod complex_wires;
+mod morse;
+mod password;
+mod wires;
+
+pub use {
+    button::Button, complex_wires::ComplexWires, morse::Morse, password::Password, wires::Wires,
+};

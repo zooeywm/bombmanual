@@ -31,18 +31,17 @@ enum Text {
     Abort,
     Detonate,
     Hold,
+    Other,
 }
 
 impl Text {
-    fn new(s: &str) -> anyhow::Result<Self> {
+    fn new(s: &str) -> Self {
         use Text::*;
         match s {
-            "abort" | "中止" => Ok(Abort),
-            "detonate" | "引爆" => Ok(Detonate),
-            "hold" | "按住" => Ok(Hold),
-            _ => anyhow::bail!(
-                r#"Invalid input, must be one of the texts: "中止|abort"、"引爆|detonate"、"按住|hold"."#
-            ),
+            "a" | "abort" | "中止" => Abort,
+            "d" | "detonate" | "引爆" => Detonate,
+            "h" | "hold" | "按住" => Hold,
+            _ => Other,
         }
     }
 }
@@ -59,7 +58,7 @@ impl Button {
         let text = iter.next().ok_or(anyhow::anyhow!("No label text"))?;
         Ok(Self {
             color: Color::new(color)?,
-            text: Text::new(text)?,
+            text: Text::new(text),
         })
     }
 
@@ -84,7 +83,7 @@ impl Button {
         })
     }
 
-    pub fn get_countermeasure(&self) -> anyhow::Result<String> {
+    pub fn get_counter_measure(&self) -> anyhow::Result<String> {
         let tactic = self.get_tactic()?;
         Ok(match tactic {
             Tactic::Touch => "Press and immediately release the button",

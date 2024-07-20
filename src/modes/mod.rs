@@ -1,5 +1,10 @@
-pub(super) mod wires {
-    use bomb::wires::Wires;
+pub(super) use {
+    button::button_mode, complex_wires::complex_wires_mode, morse::morse_mode,
+    password::password_mode, wires::wires_mode,
+};
+
+mod wires {
+    use bomb::Wires;
 
     use crate::read_string;
 
@@ -13,8 +18,8 @@ pub(super) mod wires {
     }
 }
 
-pub(super) mod complex_wires {
-    use bomb::complex_wires::ComplexWires;
+mod complex_wires {
+    use bomb::ComplexWires;
 
     use crate::read_string;
 
@@ -34,8 +39,8 @@ pub(super) mod complex_wires {
     }
 }
 
-pub(super) mod button {
-    use bomb::button::Button;
+mod button {
+    use bomb::Button;
 
     use crate::read_string;
 
@@ -43,8 +48,50 @@ pub(super) mod button {
         println!("Enter button color and label using format like 'r abort|中止' for red, abort\n");
         let s = read_string()?;
         let button = Button::new(&s)?;
-        let countermeasure = button.get_countermeasure()?;
-        println!("{countermeasure}",);
+        let counter_measure = button.get_counter_measure()?;
+        println!("{counter_measure}",);
+        Ok(())
+    }
+}
+
+mod password {
+    use bomb::Password;
+
+    use crate::read_string;
+
+    pub fn password_mode() -> anyhow::Result<()> {
+        let mut password = Password::default();
+        let mut i = 0_u8;
+        while i < 5 {
+            println!("Please input position {} chars", i + 1);
+            let chars = read_string()?.chars().collect::<Vec<_>>();
+            if let Some(answer) = password.answer(chars, i) {
+                println!("answer: {answer}");
+                break;
+            }
+            i += 1;
+        }
+        Ok(())
+    }
+}
+
+mod morse {
+    use bomb::Morse;
+
+    use crate::read_char;
+
+    pub fn morse_mode() -> anyhow::Result<()> {
+        let mut morse = Morse::default();
+        loop {
+            println!("Please input morse char, input 0 for break.");
+            let char = read_char()?;
+            if char == '0' {
+                break;
+            }
+
+            let morses = morse.answer(char);
+            println!("morses:\n{morses:#?}");
+        }
         Ok(())
     }
 }

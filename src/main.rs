@@ -1,7 +1,7 @@
 mod modes;
 
-use crate::modes::{button::button_mode, complex_wires::complex_wires_mode, wires::wires_mode};
-use bomb::utils::{read_string, read_u8};
+use crate::modes::*;
+use bomb::utils::*;
 
 fn main() {
     loop {
@@ -28,6 +28,8 @@ fn one_game() -> anyhow::Result<bool> {
 1. Wires
 2. Complex Wires
 3. Button
+4. Password
+5. Morse
 0. Exit
 "#,
     );
@@ -89,6 +91,56 @@ fn one_game() -> anyhow::Result<bool> {
             println!("Play button mode");
             loop {
                 match button_mode() {
+                    Ok(_) => {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("Error: {e}");
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                }
+            }
+        }
+        4 => {
+            clear();
+            println!("Play password mode");
+            loop {
+                match password_mode() {
+                    Ok(_) => {
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("Error: {e}");
+                        println!("type any for continue, 0 for menu.");
+                        if read_string()?.eq("0") {
+                            break;
+                        }
+                        clear();
+                        continue;
+                    }
+                }
+            }
+        }
+        5 => {
+            clear();
+            println!("Play morse mode");
+            loop {
+                match morse_mode() {
                     Ok(_) => {
                         println!("type any for continue, 0 for menu.");
                         if read_string()?.eq("0") {
